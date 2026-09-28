@@ -145,21 +145,24 @@ END$$
 
 DELIMITER ;
 
-DELIMITER $$
+DELIMITER $$ 
 
 CREATE PROCEDURE relatorio_cliente(
     IN p_id_cliente INT
-)
-BEGIN
-    SELECT c.id_c, c.nome, COUNT(os.fk_id_cliente) AS quantidade_servicos, SUM(s.valor) AS total_gasto
-    FROM clientes c
-    JOIN ordens_servico os ON c.id_c = os.fk_id_cliente
-    JOIN servicos s ON os.fk_id_servico = s.id_scs
-    WHERE c.id_c = p_id_cliente
-    GROUP BY c.id_c, c.nome;
-END$$
+) 
+BEGIN 
+    SELECT 
+        c.id_c, c.nome, COUNT(os.id_os) AS quantidade_servicos, SUM(s.valor) AS total_gasto 
+    FROM clientes c 
+    JOIN veiculos v ON c.id_c = v.fk_id_cliente 
+    JOIN ordens_servico os ON v.id_v = os.fk_id_veiculo 
+    JOIN servicos s ON os.fk_id_servico = s.id_scs 
+    WHERE c.id_c = p_id_cliente 
+    GROUP BY c.id_c, c.nome; 
+END$$ 
 
 DELIMITER ;
+
 
 --------------------------
 -- CRIACAO DAS TRIGGERS --
