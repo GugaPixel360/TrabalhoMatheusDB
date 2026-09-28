@@ -1,13 +1,22 @@
+-------------------------
+-- CRIACAO DA DATABASE --
+-------------------------
 CREATE DATABASE IF NOT EXISTS oficina_mecanica;
 USE oficina_mecanica;
     
-CREATE TABLE IF NOT EXISTS clientes(
+------------------------
+-- CRIACAO DAS TABLES --
+------------------------
+
+-- CLIENTES
+CREATE TABLE IF NOT EXISTS clientes(           
     id_c INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     endereco VARCHAR(255)
 );
     
+-- VEICULOS 
 CREATE TABLE IF NOT EXISTS veiculos(
     id_v INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_cliente INT NOT NULL,
@@ -19,11 +28,13 @@ CREATE TABLE IF NOT EXISTS veiculos(
     FOREIGN KEY (fk_id_cliente) REFERENCES clientes(id)
 );
     
+-- ESPECIALIDADES
 CREATE TABLE IF NOT EXISTS especialidades(
     id_eps INT AUTO_INCREMENT PRIMARY KEY,
     qual VARCHAR(100) NOT NULL
 );
     
+-- MECANICOS 
 CREATE TABLE IF NOT EXISTS mecanicos(
     id_m INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -32,6 +43,7 @@ CREATE TABLE IF NOT EXISTS mecanicos(
     FOREIGN KEY (fk_id_especialidade) REFERENCES especialidades(id)
 );
     
+-- SERVIÇOS
 CREATE TABLE IF NOT EXISTS servicos(
     id_scs INT AUTO_INCREMENT PRIMARY KEY,
     descricao VARCHAR(255) NOT NULL,
@@ -41,6 +53,7 @@ CREATE TABLE IF NOT EXISTS servicos(
     FOREIGN KEY (fk_id_especialidade) REFERENCES especialidades(id)
 );
     
+-- ORDENS DE SERVIÇOS
 CREATE TABLE IF NOT EXISTS ordens_servico(
     id_os INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_veiculo INT NOT NULL,
@@ -56,6 +69,7 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id)
 );
     
+-- HISTORICO
 CREATE TABLE IF NOT EXISTS servicos_realizados(
     id_sr INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_ordem_servico INT NOT NULL,
@@ -66,5 +80,4 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     FOREIGN KEY (fk_id_ordem_servico) REFERENCES ordens_servico (id),
     FOREIGN KEY (fk_valor) REFERENCES servicos   
 );
-
 
