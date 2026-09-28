@@ -56,4 +56,4 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     data_realizacao DATETIME NOT NULL,
 
     FOREIGN KEY (fk_id_ordem_servico) REFERENCES ordens_servico (id)
-)
+);
