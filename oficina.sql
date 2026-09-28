@@ -1,13 +1,22 @@
+-------------------------
+-- CRIACAO DA DATABASE --
+-------------------------
 CREATE DATABASE IF NOT EXISTS oficina_mecanica;
 USE oficina_mecanica;
     
-CREATE TABLE IF NOT EXISTS clientes(
+------------------------
+-- CRIACAO DAS TABLES --
+------------------------
+
+-- CLIENTES
+CREATE TABLE IF NOT EXISTS clientes(           
     id_c INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     endereco VARCHAR(255)
 );
     
+-- VEICULOS 
 CREATE TABLE IF NOT EXISTS veiculos(
     id_v INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_cliente INT NOT NULL,
@@ -19,11 +28,13 @@ CREATE TABLE IF NOT EXISTS veiculos(
     FOREIGN KEY (fk_id_cliente) REFERENCES clientes(id_c)
 );
     
+-- ESPECIALIDADES
 CREATE TABLE IF NOT EXISTS especialidades(
     id_eps INT AUTO_INCREMENT PRIMARY KEY,
     qual VARCHAR(100) NOT NULL
 );
     
+-- MECANICOS 
 CREATE TABLE IF NOT EXISTS mecanicos(
     id_m INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -32,6 +43,7 @@ CREATE TABLE IF NOT EXISTS mecanicos(
     FOREIGN KEY (fk_id_especialidade) REFERENCES especialidades(id_eps)
 );
     
+-- SERVIÇOS
 CREATE TABLE IF NOT EXISTS servicos(
     id_scs INT AUTO_INCREMENT PRIMARY KEY,
     descricao VARCHAR(255) NOT NULL,
@@ -41,6 +53,7 @@ CREATE TABLE IF NOT EXISTS servicos(
     FOREIGN KEY (fk_id_especialidade) REFERENCES especialidades(id_eps)
 );
     
+-- ORDENS DE SERVIÇOS
 CREATE TABLE IF NOT EXISTS ordens_servico(
     id_os INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_veiculo INT NOT NULL,
@@ -55,6 +68,7 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
     
+-- HISTORICO
 CREATE TABLE IF NOT EXISTS servicos_realizados(
     id_sr INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_ordem_servico INT NOT NULL,
@@ -144,5 +158,37 @@ BEGIN
     WHERE c.id_c = p_id_cliente
     GROUP BY c.id_c, c.nome;
 END$$
+
+DELIMITER ;
+
+--------------------------
+-- CRIACAO DAS TRIGGERS --
+--------------------------
+
+-- trigger add ao historico 
+DELIMITER //
+
+CREATE TRIGGER adicionar_historico
+AFTER INSERT ON ordens_servico
+FOR EACH ROW
+BEGIN
+
+    INSERT INTO servicos_realizados (
+        fk_id_ordem_servico,
+        descricao,
+        fk_id_servico,
+        valor,
+        data_realizacao
+    )
+    SELECT
+        NEW.id_os,
+        s.descricao,
+        s.id_scs,
+        s.valor,
+        NEW.data_abertura
+    FROM servicos s
+    WHERE s.id_scs = NEW.fk_id_servico;
+
+END//
 
 DELIMITER ;
