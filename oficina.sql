@@ -81,3 +81,36 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     FOREIGN KEY (fk_valor) REFERENCES servicos   
 );
 
+
+--------------------------
+-- CRIACAO DAS TRIGGERS --
+--------------------------
+
+-- trigger add ao historico 
+DELIMITER //
+
+CREATE TRIGGER adicionar_historico
+AFTER INSERT ON ordens_servico
+FOR EACH ROW
+BEGIN
+
+    INSERT INTO servicos_realizados (
+        fk_id_ordem_servico,
+        descricao,
+        fk_id_servico,
+        valor,
+        data_realizacao
+    )
+    SELECT
+        NEW.id_os,
+        s.descricao,
+        s.id_scs,
+        s.valor,
+        NEW.data_abertura
+    FROM servicos s
+    WHERE s.id_scs = NEW.fk_id_servico;
+
+END//
+
+DELIMITER ;
+
