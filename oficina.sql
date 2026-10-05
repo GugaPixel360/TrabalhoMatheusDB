@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     fk_id_servico INT NOT NULL,
     data_abertura DATETIME NOT NULL,
     data_fechamento DATETIME NULL,
-    status ENUM('aberta', 'em andamento', 'fechada') DEFAULT 'aberta',
-    
+    IN p_novo_status VARCHAR(20) NOT NULL DEFAULT 'aberta',
+
     FOREIGN KEY (fk_id_veiculo) REFERENCES veiculos(id_v),
     FOREIGN KEY (fk_id_mecanico) REFERENCES mecanicos(id_m),
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
@@ -73,11 +73,12 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     id_sr INT AUTO_INCREMENT PRIMARY KEY,
     fk_id_ordem_servico INT NOT NULL,
     descricao VARCHAR(255) NOT NULL,
-    fk_valor INT NOT NULL,
+    fk_id_servico INT NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
     data_realizacao DATETIME NOT NULL,
-    
-    FOREIGN KEY (fk_id_ordem_servico) REFERENCES ordens_servico (id_os),
-    FOREIGN KEY (fk_valor) REFERENCES servicos   
+
+    FOREIGN KEY (fk_id_ordem_servico) REFERENCES ordens_servico(id_os),
+    FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
 
 ----------------------------
@@ -109,24 +110,24 @@ DELIMITER $$
 CREATE PROCEDURE abrir_ordem(
     IN p_id_veiculo INT,
     IN p_id_mecanico INT,
-    IN p_id_servico INT
+    IN p_id_servico INT,
     IN p_data_abertura DATETIME
 )
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM veiculos WHERE id_v = p_id_veiculo) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Veículo não encontrado.';
 
-    ELSE IF NOT EXISTS (SELECT 1 FROM mecanicos WHERE id_m = p_id_mecanico) THEN
+    ELSEIF NOT EXISTS (SELECT 1 FROM mecanicos WHERE id_m = p_id_mecanico) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Mecânico não encontrado.';
 
-    ELSE IF NOT EXISTS (SELECT 1 FROM servicos WHERE id_scs = p_id_servico) THEN
+    ELSEIF NOT EXISTS (SELECT 1 FROM servicos WHERE id_scs = p_id_servico) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Serviço não encontrado.';
 
     ELSE
         INSERT INTO ordens_servico (fk_id_veiculo, fk_id_mecanico, fk_id_servico, data_abertura)
         VALUES (p_id_veiculo, p_id_mecanico, p_id_servico, p_data_abertura);
     
-    END IF$$
+    END IF;
 END$$
 
 DELIMITER ;
@@ -136,15 +137,21 @@ DELIMITER $$
 
 CREATE PROCEDURE alterar_status_ordem(
     IN p_id_ordem INT,
-    IN p_novo_status ENUM('aberta', 'em andamento', 'fechada')
+    IN p_novo_status VARCHAR(20)
 )
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM ordens_servico WHERE id_os = p_id_ordem) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ordem de serviço não encontrada.';
     
+    ELSEIF p_novo_status NOT IN ('aberta', 'em andamento', 'fechada') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Status inválido.';
+        
     ELSE
         UPDATE ordens_servico
-        SET status = p_novo_status, data_fechamento = null
+        SET status = p_novo_status, data_fechamento = CASE
+            WHEN p_novo_status = 'fechada' THEN NOW()
+            ELSE NULL
+        END
         WHERE id_os = p_id_ordem;
     END IF;
 END$$
