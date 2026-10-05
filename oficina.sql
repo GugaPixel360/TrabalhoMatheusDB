@@ -67,7 +67,18 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     FOREIGN KEY (fk_id_mecanico) REFERENCES mecanicos(id_m),
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
-    
+
+-- HISTORICO DE PRECOS     
+CREATE TABLE historico_precos (
+    id_hp INT AUTO_INCREMENT PRIMARY KEY,
+    fk_id_servico INT NOT NULL,
+    preco_anterior DECIMAL(10,2) NOT NULL,
+    preco_novo DECIMAL(10,2) NOT NULL,
+    data_hora DATETIME NOT NULL,
+
+    FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
+);
+
 -- HISTORICO
 CREATE TABLE IF NOT EXISTS servicos_realizados(
     id_sr INT AUTO_INCREMENT PRIMARY KEY,
@@ -81,9 +92,100 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
 
-----------------------------
--- CRIACAO DAS PROCEDURES --
-----------------------------
+-- inner join cliente e veiculo
+SELECT
+    c.id_c,
+    c.nome AS cliente,
+    v.id_v,
+    v.marca,
+    v.modelo,
+    v.ano,
+    v.placa
+FROM clientes c
+INNER JOIN veiculos v
+    ON c.id_c = v.fk_id_cliente
+ORDER BY c.nome, v.marca, v.modelo;
+
+
+-- inner join ordem d servico + cliente + veiculo
+SELECT
+    os.id_os,
+    c.nome AS cliente,
+    v.marca,
+    v.modelo,
+    v.placa,
+    os.data_abertura,
+    os.status
+FROM ordens_servico os
+INNER JOIN veiculos v
+    ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c
+    ON v.fk_id_cliente = c.id_c
+ORDER BY os.data_abertura DESC;
+
+
+-- inner join ordem d servico + mecanico 
+SELECT
+    os.id_os,
+    m.id_m,
+    m.nome AS mecanico,
+    os.data_abertura,
+    os.data_fechamento,
+    os.status
+FROM ordens_servico os
+INNER JOIN mecanicos m
+    ON os.fk_id_mecanico = m.id_m
+ORDER BY os.id_os;
+
+
+-- Ordem de Serviço + Serviços Realizados
+SELECT
+    os.id_os,
+    os.data_abertura,
+    os.status,
+    sr.id_sr,
+    sr.descricao AS servico_realizado,
+    sr.valor,
+    sr.data_realizacao
+FROM ordens_servico os
+INNER JOIN servicos_realizados sr
+    ON os.id_os = sr.fk_id_ordem_servico
+ORDER BY os.id_os, sr.data_realizacao;
+
+
+
+-- ordem completa 
+SELECT c.nome AS cliente,
+    v.marca, v.modelo, v.placa,
+    m.nome AS mecanico,
+    sr.descricao AS servico, sr.valor,
+    os.data_abertura, os.status
+FROM ordens_servico os
+INNER JOIN veiculos v ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c ON v.fk_id_cliente = c.id_c
+INNER JOIN mecanicos m ON os.fk_id_mecanico = m.id_m
+INNER JOIN servicos_realizados sr ON os.id_os = sr.fk_id_ordem_servico
+
+ORDER BY os.data_abertura DESC, c.nome;
+
+
+-- relatorio de tds os mecanicos
+SELECT m.id_m, m.nome AS mecanico, e.qual AS especialidade,
+    COUNT(os.id_os) AS total_ordens,
+    MAX(os.data_abertura) AS ultima_ordem
+FROM mecanicos m
+LEFT JOIN ordens_servico os
+    ON m.id_m = os.fk_id_mecanico
+LEFT JOIN especialidades e
+    ON m.fk_id_especialidade = e.id_eps
+GROUP BY m.id_m, m.nome, e.qual
+ORDER BY total_ordens DESC, m.nome;
+
+
+----------------
+-- PROCEDURES --
+----------------
+
 
 -- Cadastrar clientes 
 DELIMITER $$
@@ -209,6 +311,103 @@ BEGIN
 END//
 
 DELIMITER ; 
+
+
+-- adiciona ao historico as alteracoes 
+DELIMITER //
+
+CREATE TRIGGER registrar_alteracao_preco
+AFTER UPDATE ON servicos
+FOR EACH ROW
+BEGIN
+
+    IF OLD.valor <> NEW.valor THEN
+
+        INSERT INTO historico_precos (
+            fk_id_servico,
+            preco_anterior,
+            preco_novo,
+            data_hora
+        )
+        VALUES (
+            NEW.id_scs,
+            OLD.valor,
+            NEW.valor,
+            NOW()
+        );
+
+    END IF;
+
+END//
+
+DELIMITER ;
+
+-- Historico apos a finalizacao
+DELIMITER //
+
+CREATE TRIGGER finalizar_ordem
+BEFORE UPDATE ON ordens_servico
+FOR EACH ROW
+BEGIN
+
+    IF NEW.p_novo_status = 'finalizada'
+       AND OLD.p_novo_status <> 'finalizada' THEN
+
+        SET NEW.data_fechamento = NOW();
+
+    END IF;
+
+END//
+
+DELIMITER ;
+
+
+
+------------------------
+-- GROUP BY e HAVING --
+------------------------
+
+-- veiculos por cliente 
+SELECT 
+    c.id_c, 
+    c.nome AS cliente, 
+    COUNT(v.id_v) AS total_veiculos
+FROM
+    clientes c
+    JOIN veiculos v ON c.id_c = v.fk_id_cliente
+GROUP BY
+    c.id_c, c.nome
+HAVING
+    COUNT(v.id_v) > 0
+;
+
+-- ORDENS ATENDIDAS POR MECANICO
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 0
+;
+
+-- mecanicos que participaram de mais de 1 ordem
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 1
+;
 
 SELECT * FROM clientes
 WHERE id_c IN (1, 2, 3);
