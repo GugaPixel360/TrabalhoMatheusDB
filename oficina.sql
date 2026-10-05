@@ -144,35 +144,24 @@ ORDER BY os.id_os, sr.data_realizacao;
 
 
 -- ordem completa 
-SELECT
-    c.nome                AS cliente,
-    v.marca,
-    v.modelo,
-    v.placa,
-    m.nome                AS mecanico,
-    sr.descricao          AS servico,
-    sr.valor,
-    os.data_abertura,
-    os.status
+SELECT c.nome AS cliente,
+    v.marca, v.modelo, v.placa,
+    m.nome AS mecanico,
+    sr.descricao AS servico, sr.valor,
+    os.data_abertura, os.status
 FROM ordens_servico os
-INNER JOIN veiculos v
-    ON os.fk_id_veiculo = v.id_v
-INNER JOIN clientes c
-    ON v.fk_id_cliente = c.id_c
-INNER JOIN mecanicos m
-    ON os.fk_id_mecanico = m.id_m
-INNER JOIN servicos_realizados sr
-    ON os.id_os = sr.fk_id_ordem_servico
+INNER JOIN veiculos v ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c ON v.fk_id_cliente = c.id_c
+INNER JOIN mecanicos m ON os.fk_id_mecanico = m.id_m
+INNER JOIN servicos_realizados sr ON os.id_os = sr.fk_id_ordem_servico
+
 ORDER BY os.data_abertura DESC, c.nome;
 
 
 -- relatorio de tds os mecanicos
-SELECT
-    m.id_m,
-    m.nome                  AS mecanico,
-    e.qual                  AS especialidade,
-    COUNT(os.id_os)         AS total_ordens,
-    MAX(os.data_abertura)   AS ultima_ordem
+SELECT m.id_m, m.nome AS mecanico, e.qual AS especialidade,
+    COUNT(os.id_os) AS total_ordens,
+    MAX(os.data_abertura) AS ultima_ordem
 FROM mecanicos m
 LEFT JOIN ordens_servico os
     ON m.id_m = os.fk_id_mecanico
