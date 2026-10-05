@@ -80,7 +80,11 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     FOREIGN KEY (fk_valor) REFERENCES servicos   
 );
 
+----------------------------
+-- CRIACAO DAS PROCEDURES --
+----------------------------
 
+-- Cadastrar clientes 
 DELIMITER $$
 
 CREATE PROCEDURE cadastrar_cliente(
@@ -99,6 +103,7 @@ END$$
 
 DELIMITER ;
 
+-- Abrir ordem 
 DELIMITER $$
 
 CREATE PROCEDURE abrir_ordem(
@@ -126,6 +131,7 @@ END$$
 
 DELIMITER ;
 
+-- Altera o status da ordem 
 DELIMITER $$
 
 CREATE PROCEDURE alterar_status_ordem(
@@ -145,6 +151,7 @@ END$$
 
 DELIMITER ;
 
+-- Read especifico 
 DELIMITER $$ 
 
 CREATE PROCEDURE relatorio_cliente(
@@ -194,4 +201,4 @@ BEGIN
 
 END//
 
-DELIMITER ;
+DELIMITER ; 
