@@ -380,20 +380,16 @@ END//
 DELIMITER ;
 
 -- Historico apos a finalizacao
+
 DELIMITER //
 
 CREATE TRIGGER finalizar_ordem
 BEFORE UPDATE ON ordens_servico
 FOR EACH ROW
 BEGIN
-
-    IF NEW.p_novo_status = 'finalizada'
-       AND OLD.p_novo_status <> 'finalizada' THEN
-
+    IF NEW.status = 'fechada' AND OLD.status <> 'fechada' THEN
         SET NEW.data_fechamento = NOW();
-
     END IF;
-
 END//
 
 DELIMITER ;
@@ -413,10 +409,7 @@ FROM
     clientes c
     JOIN veiculos v ON c.id_c = v.fk_id_cliente
 GROUP BY
-    c.id_c, c.nome
-HAVING
-    COUNT(v.id_v) > 0
-;
+    c.id_c, c.nome;
 
 -- ORDENS ATENDIDAS POR MECANICO
 SELECT 
@@ -454,19 +447,17 @@ WHERE fk_id_cliente = 1
 AND ano >= 2020
 ORDER BY modelo;
 
-SELECT * FROM SERVIÇOS
-WHERE valor > 500
-OR descricao LIKE '%motor%';
+SELECT * FROM servicos
+WHERE valor > 500;
 
 SELECT * FROM servicos
-WHERE valor BETWEEN 100 AND 500
+WHERE valor BETWEEN 100 AND 500;
 
 SELECT * FROM clientes
 WHERE nome LIKE 'A%';
 
 SELECT * FROM ordens_servico
-WHERE status = 'aberto'
+WHERE status = 'aberta';
 
 SELECT * FROM servicos
-ORDENS BY valor descricao
-LIMIT 5;
+ORDER BY valor DESC LIMIT 5;
