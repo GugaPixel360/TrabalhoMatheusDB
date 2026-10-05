@@ -155,35 +155,24 @@ ORDER BY os.id_os, sr.data_realizacao;
 
 
 -- ordem completa 
-SELECT
-    c.nome                AS cliente,
-    v.marca,
-    v.modelo,
-    v.placa,
-    m.nome                AS mecanico,
-    sr.descricao          AS servico,
-    sr.valor,
-    os.data_abertura,
-    os.status
+SELECT c.nome AS cliente,
+    v.marca, v.modelo, v.placa,
+    m.nome AS mecanico,
+    sr.descricao AS servico, sr.valor,
+    os.data_abertura, os.status
 FROM ordens_servico os
-INNER JOIN veiculos v
-    ON os.fk_id_veiculo = v.id_v
-INNER JOIN clientes c
-    ON v.fk_id_cliente = c.id_c
-INNER JOIN mecanicos m
-    ON os.fk_id_mecanico = m.id_m
-INNER JOIN servicos_realizados sr
-    ON os.id_os = sr.fk_id_ordem_servico
+INNER JOIN veiculos v ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c ON v.fk_id_cliente = c.id_c
+INNER JOIN mecanicos m ON os.fk_id_mecanico = m.id_m
+INNER JOIN servicos_realizados sr ON os.id_os = sr.fk_id_ordem_servico
+
 ORDER BY os.data_abertura DESC, c.nome;
 
 
 -- relatorio de tds os mecanicos
-SELECT
-    m.id_m,
-    m.nome                  AS mecanico,
-    e.qual                  AS especialidade,
-    COUNT(os.id_os)         AS total_ordens,
-    MAX(os.data_abertura)   AS ultima_ordem
+SELECT m.id_m, m.nome AS mecanico, e.qual AS especialidade,
+    COUNT(os.id_os) AS total_ordens,
+    MAX(os.data_abertura) AS ultima_ordem
 FROM mecanicos m
 LEFT JOIN ordens_servico os
     ON m.id_m = os.fk_id_mecanico
@@ -360,6 +349,7 @@ END//
 
 DELIMITER ; 
 
+
 -- adiciona ao historico as alteracoes 
 DELIMITER //
 
@@ -410,14 +400,73 @@ DELIMITER ;
 
 
 
+------------------------
+-- GROUP BY e HAVING --
+------------------------
 
+-- veiculos por cliente 
+SELECT 
+    c.id_c, 
+    c.nome AS cliente, 
+    COUNT(v.id_v) AS total_veiculos
+FROM
+    clientes c
+    JOIN veiculos v ON c.id_c = v.fk_id_cliente
+GROUP BY
+    c.id_c, c.nome
+HAVING
+    COUNT(v.id_v) > 0
+;
 
+-- ORDENS ATENDIDAS POR MECANICO
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 0
+;
 
+-- mecanicos que participaram de mais de 1 ordem
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 1
+;
 
+SELECT * FROM clientes
+WHERE id_c IN (1, 2, 3);
 
+SELECT * FROM veiculos
+WHERE fk_id_cliente = 1
+AND ano >= 2020
+ORDER BY modelo;
 
+SELECT * FROM SERVIÇOS
+WHERE valor > 500
+OR descricao LIKE '%motor%';
 
+SELECT * FROM servicos
+WHERE valor BETWEEN 100 AND 500
 
+SELECT * FROM clientes
+WHERE nome LIKE 'A%';
 
+SELECT * FROM ordens_servico
+WHERE status = 'aberto'
 
-
+SELECT * FROM servicos
+ORDENS BY valor descricao
+LIMIT 5;
