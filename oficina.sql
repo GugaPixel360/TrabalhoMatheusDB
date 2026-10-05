@@ -373,14 +373,48 @@ DELIMITER ;
 
 
 
+------------------------
+-- GROUP BY e HAVING --
+------------------------
 
+-- veiculos por cliente 
+SELECT 
+    c.id_c, 
+    c.nome AS cliente, 
+    COUNT(v.id_v) AS total_veiculos
+FROM
+    clientes c
+    JOIN veiculos v ON c.id_c = v.fk_id_cliente
+GROUP BY
+    c.id_c, c.nome
+HAVING
+    COUNT(v.id_v) > 0
+;
 
+-- ORDENS ATENDIDAS POR MECANICO
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 0
+;
 
-
-
-
-
-
-
-
-
+-- mecanicos que participaram de mais de 1 ordem
+SELECT 
+    m.id_m, 
+    m.nome AS mecanico, 
+    COUNT(os.id_os) AS total_ordens
+FROM
+    mecanicos m 
+    JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+GROUP BY    
+    m.id_m, m.nome
+HAVING
+    COUNT(os.id_os) > 1
+;
