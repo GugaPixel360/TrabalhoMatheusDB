@@ -316,6 +316,58 @@ END$$
 
 DELIMITER ;
 
+-----------------
+-- SUBQUERIES --
+-----------------
+
+-- Servicos com valor estritamente maior que a media de todos os servicos
+SELECT
+    id_scs,
+    descricao,
+    valor
+FROM servicos
+WHERE valor > (
+    -- subquery: calcula a media de valor de todos os servicos
+    SELECT AVG(valor)
+    FROM servicos
+)
+ORDER BY valor DESC;
+
+
+-- Clientes que possuem pelo menos uma Ordem de Servico
+SELECT
+    c.id_c,
+    c.nome,
+    c.email
+FROM clientes c
+WHERE c.id_c IN (
+    -- subquery: ids dos clientes dos veiculos que tem alguma ordem de servico
+    SELECT v.fk_id_cliente
+    FROM veiculos v
+    INNER JOIN ordens_servico os
+        ON os.fk_id_veiculo = v.id_v
+)
+ORDER BY c.nome;
+
+
+-- Mecanicos que nunca realizaram uma Ordem de Servico
+-- (subquery correlacionada com NOT EXISTS)
+SELECT
+    m.id_m,
+    m.nome AS mecanico,
+    e.qual AS especialidade
+FROM mecanicos m
+LEFT JOIN especialidades e
+    ON m.fk_id_especialidade = e.id_eps
+WHERE NOT EXISTS (
+    -- subquery correlacionada: procura ordens do mecanico da linha atual
+    SELECT 1
+    FROM ordens_servico os
+    WHERE os.fk_id_mecanico = m.id_m
+)
+ORDER BY m.nome;
+
+
 
 --------------------------
 -- CRIACAO DAS TRIGGERS --
