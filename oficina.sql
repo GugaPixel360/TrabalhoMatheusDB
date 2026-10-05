@@ -92,9 +92,111 @@ CREATE TABLE IF NOT EXISTS servicos_realizados(
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
 
-----------------------------
--- CRIACAO DAS PROCEDURES --
-----------------------------
+-- inner join cliente e veiculo
+SELECT
+    c.id_c,
+    c.nome AS cliente,
+    v.id_v,
+    v.marca,
+    v.modelo,
+    v.ano,
+    v.placa
+FROM clientes c
+INNER JOIN veiculos v
+    ON c.id_c = v.fk_id_cliente
+ORDER BY c.nome, v.marca, v.modelo;
+
+
+-- inner join ordem d servico + cliente + veiculo
+SELECT
+    os.id_os,
+    c.nome AS cliente,
+    v.marca,
+    v.modelo,
+    v.placa,
+    os.data_abertura,
+    os.status
+FROM ordens_servico os
+INNER JOIN veiculos v
+    ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c
+    ON v.fk_id_cliente = c.id_c
+ORDER BY os.data_abertura DESC;
+
+
+-- inner join ordem d servico + mecanico 
+SELECT
+    os.id_os,
+    m.id_m,
+    m.nome AS mecanico,
+    os.data_abertura,
+    os.data_fechamento,
+    os.status
+FROM ordens_servico os
+INNER JOIN mecanicos m
+    ON os.fk_id_mecanico = m.id_m
+ORDER BY os.id_os;
+
+
+-- Ordem de Serviço + Serviços Realizados
+SELECT
+    os.id_os,
+    os.data_abertura,
+    os.status,
+    sr.id_sr,
+    sr.descricao AS servico_realizado,
+    sr.valor,
+    sr.data_realizacao
+FROM ordens_servico os
+INNER JOIN servicos_realizados sr
+    ON os.id_os = sr.fk_id_ordem_servico
+ORDER BY os.id_os, sr.data_realizacao;
+
+
+
+-- ordem completa 
+SELECT
+    c.nome                AS cliente,
+    v.marca,
+    v.modelo,
+    v.placa,
+    m.nome                AS mecanico,
+    sr.descricao          AS servico,
+    sr.valor,
+    os.data_abertura,
+    os.status
+FROM ordens_servico os
+INNER JOIN veiculos v
+    ON os.fk_id_veiculo = v.id_v
+INNER JOIN clientes c
+    ON v.fk_id_cliente = c.id_c
+INNER JOIN mecanicos m
+    ON os.fk_id_mecanico = m.id_m
+INNER JOIN servicos_realizados sr
+    ON os.id_os = sr.fk_id_ordem_servico
+ORDER BY os.data_abertura DESC, c.nome;
+
+
+-- relatorio de tds os mecanicos
+SELECT
+    m.id_m,
+    m.nome                  AS mecanico,
+    e.qual                  AS especialidade,
+    COUNT(os.id_os)         AS total_ordens,
+    MAX(os.data_abertura)   AS ultima_ordem
+FROM mecanicos m
+LEFT JOIN ordens_servico os
+    ON m.id_m = os.fk_id_mecanico
+LEFT JOIN especialidades e
+    ON m.fk_id_especialidade = e.id_eps
+GROUP BY m.id_m, m.nome, e.qual
+ORDER BY total_ordens DESC, m.nome;
+
+
+----------------
+-- PROCEDURES --
+----------------
+
 
 -- Cadastrar clientes 
 DELIMITER $$
