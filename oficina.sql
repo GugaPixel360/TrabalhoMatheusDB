@@ -67,7 +67,18 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     FOREIGN KEY (fk_id_mecanico) REFERENCES mecanicos(id_m),
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
 );
-    
+
+-- HISTORICO DE PRECOS     
+CREATE TABLE historico_precos (
+    id_hp INT AUTO_INCREMENT PRIMARY KEY,
+    fk_id_servico INT NOT NULL,
+    preco_anterior DECIMAL(10,2) NOT NULL,
+    preco_novo DECIMAL(10,2) NOT NULL,
+    data_hora DATETIME NOT NULL,
+
+    FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_scs)
+);
+
 -- HISTORICO
 CREATE TABLE IF NOT EXISTS servicos_realizados(
     id_sr INT AUTO_INCREMENT PRIMARY KEY,
@@ -300,3 +311,65 @@ BEGIN
 END//
 
 DELIMITER ; 
+
+-- adiciona ao historico as alteracoes 
+DELIMITER //
+
+CREATE TRIGGER registrar_alteracao_preco
+AFTER UPDATE ON servicos
+FOR EACH ROW
+BEGIN
+
+    IF OLD.valor <> NEW.valor THEN
+
+        INSERT INTO historico_precos (
+            fk_id_servico,
+            preco_anterior,
+            preco_novo,
+            data_hora
+        )
+        VALUES (
+            NEW.id_scs,
+            OLD.valor,
+            NEW.valor,
+            NOW()
+        );
+
+    END IF;
+
+END//
+
+DELIMITER ;
+
+-- Historico apos a finalizacao
+DELIMITER //
+
+CREATE TRIGGER finalizar_ordem
+BEFORE UPDATE ON ordens_servico
+FOR EACH ROW
+BEGIN
+
+    IF NEW.p_novo_status = 'finalizada'
+       AND OLD.p_novo_status <> 'finalizada' THEN
+
+        SET NEW.data_fechamento = NOW();
+
+    END IF;
+
+END//
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
