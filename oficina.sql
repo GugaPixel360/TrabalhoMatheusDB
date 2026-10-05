@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS ordens_servico(
     fk_id_servico INT NOT NULL,
     data_abertura DATETIME NOT NULL,
     data_fechamento DATETIME NULL,
-    IN p_novo_status VARCHAR(20) NOT NULL DEFAULT 'aberta',
+    status VARCHAR(20) NOT NULL DEFAULT 'aberta',
 
     FOREIGN KEY (fk_id_veiculo) REFERENCES veiculos(id_v),
     FOREIGN KEY (fk_id_mecanico) REFERENCES mecanicos(id_m),
@@ -287,6 +287,43 @@ BEGIN
     WHERE c.id_c = p_id_cliente 
     GROUP BY c.id_c, c.nome; 
 END$$ 
+
+DELIMITER ;
+
+-- FUNCOES DE AGREGACAO 
+
+-- Quantidade total de clientes
+DELIMITER $$
+
+CREATE PROCEDURE total_clientes()
+BEGIN
+    SELECT COUNT(id_c) AS total_clientes
+    FROM clientes;
+END$$
+
+DELIMITER ;
+
+-- Quantidade total de veiculos
+DELIMITER $$
+
+CREATE PROCEDURE total_veiculos()
+BEGIN
+    SELECT COUNT(id_v) AS total_veiculos
+    FROM veiculos;
+END$$
+
+DELIMITER ;
+
+-- Metricas consolidadas dos servicos (MAX, MIN, AVG, SUM)
+DELIMITER $$
+
+CREATE PROCEDURE metricas_servicos()
+BEGIN
+    SELECT
+        MAX(valor) AS servico_mais_caro, MIN(valor) AS servico_mais_barato,
+        ROUND(AVG(valor), 2) AS preco_medio_servicos, SUM(valor) AS valor_total_servicos
+    FROM servicos;
+END$$
 
 DELIMITER ;
 
