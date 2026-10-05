@@ -209,3 +209,28 @@ BEGIN
 END//
 
 DELIMITER ; 
+
+SELECT * FROM clientes
+WHERE id_c IN (1, 2, 3);
+
+SELECT * FROM veiculos
+WHERE fk_id_cliente = 1
+AND ano >= 2020
+ORDER BY modelo;
+
+SELECT * FROM SERVIÇOS
+WHERE valor > 500
+OR descricao LIKE '%motor%';
+
+SELECT * FROM servicos
+WHERE valor BETWEEN 100 AND 500
+
+SELECT * FROM clientes
+WHERE nome LIKE 'A%';
+
+SELECT * FROM ordens_servico
+WHERE status = 'aberto'
+
+SELECT * FROM servicos
+ORDENS BY valor descricao
+LIMIT 5;
