@@ -4,6 +4,7 @@ USE oficina_mecanica;
 -- tabela clientes
 CREATE TABLE IF NOT EXISTS clientes (
     id_c INT AUTO_INCREMENT PRIMARY KEY,
+    cpf VARCHAR(11) UNIQUE NOT NULL,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     endereco VARCHAR(255)
@@ -121,6 +122,65 @@ CREATE TABLE IF NOT EXISTS servicos_realizados (
         FOREIGN KEY (fk_id_servico)
         REFERENCES servicos(id_scs)
 );
+
+-- inserts da parte 3
+
+-- Inserções mínimas exigidas
+INSERT INTO clientes (nome, email, cpf, endereco) VALUES
+('Ana Silva', 'ana@email.com', '11111111111', 'Rua 1'),
+('Bruno Dias', 'bruno@email.com', '22222222222', 'Rua 2'),
+('Carlos Souza', 'carlos@email.com', '33333333333', 'Rua 3'),
+('Daniela Ferreira', 'daniela@email.com', '44444444444', 'Rua 4'),
+('Eduardo Gomes', 'eduardo@email.com', '55555555555', 'Rua 5'),
+('Fernanda Helena', 'fernanda@email.com', '66666666666', 'Rua 6'),
+('Gabriel Inácio', 'gabriel@email.com', '77777777777', 'Rua 7'),
+('Heloisa Julia', 'heloisa@email.com', '88888888888', 'Rua 8'),
+('Igor Kauã', 'igor@email.com', '99999999999', 'Rua 9'),
+('Juliana Lima', 'juliana@email.com', '10101010101', 'Rua 10');
+
+INSERT INTO especialidades (qual) VALUES
+('Mecânica Geral'), ('Elétrica'), ('Injeção Eletrônica'), ('Suspensão e Freios');
+
+INSERT INTO mecanicos (nome, fk_id_especialidade) VALUES
+('João Mecânico', 1), ('Pedro Elétrico', 2), ('Lucas Injeção', 3), ('Marcos Suspensão', 4), ('Mateus Geral', 1);
+
+INSERT INTO veiculos (fk_id_cliente, marca, modelo, ano, placa) VALUES
+(1, 'Fiat', 'Palio', 2010, 'ABC-1234'), (1, 'Chevrolet', 'Onix', 2020, 'DEF-5678'),
+(2, 'VW', 'Gol', 2015, 'GHI-9012'), (3, 'Ford', 'Ka', 2018, 'JKL-3456'),
+(4, 'Renault', 'Kwid', 2021, 'MNO-7890'), (5, 'Hyundai', 'HB20', 2019, 'PQR-1234'),
+(6, 'Toyota', 'Corolla', 2022, 'STU-5678'), (7, 'Honda', 'Civic', 2020, 'VWX-9012'),
+(8, 'Jeep', 'Renegade', 2023, 'YZA-3456'), (9, 'Nissan', 'Kicks', 2021, 'BCD-7890'),
+(10, 'Peugeot', '208', 2022, 'EFG-1234'), (10, 'Citroen', 'C3', 2023, 'HIJ-5678');
+
+INSERT INTO servicos (descricao, valor, fk_id_especialidade) VALUES
+('Troca de Óleo', 150.00, 1), ('Troca de Bateria', 400.00, 2),
+('Limpeza de Bicos', 250.00, 3), ('Troca de Pastilhas', 200.00, 4),
+('Alinhamento', 120.00, 4), ('Revisão Geral', 800.00, 1),
+('Troca de Correia', 550.00, 1), ('Troca de Velas', 180.00, 2),
+('Reparo Alternador', 350.00, 2), ('Diagnóstico', 100.00, 3);
+
+INSERT INTO ordens_servico (fk_id_veiculo, fk_id_mecanico, status) VALUES
+(1, 1, 'fechada'), (2, 2, 'aberta'), (3, 3, 'em andamento'), (4, 4, 'fechada'),
+(5, 5, 'aberta'), (6, 1, 'em andamento'), (7, 2, 'fechada'), (8, 3, 'aberta'),
+(9, 4, 'em andamento'), (10, 5, 'fechada');
+
+INSERT INTO servicos_realizados (fk_id_ordem_servico, descricao, fk_id_servico, valor) VALUES
+(1, 'Troca de Óleo', 1, 150.00), (1, 'Troca de Bateria', 2, 400.00),
+(2, 'Limpeza de Bicos', 3, 250.00), (3, 'Troca de Pastilhas', 4, 200.00),
+(4, 'Alinhamento', 5, 120.00), (5, 'Revisão Geral', 6, 800.00),
+(6, 'Troca de Correia', 7, 550.00), (7, 'Troca de Velas', 8, 180.00),
+(8, 'Reparo Alternador', 9, 350.00), (9, 'Diagnóstico', 10, 100.00),
+(10, 'Troca de Óleo', 1, 150.00), (10, 'Alinhamento', 5, 120.00),
+(1, 'Revisão Geral', 6, 800.00), (2, 'Troca de Correia', 7, 550.00), (3, 'Troca de Velas', 8, 180.00);
+
+-- Exemplo UPDATE exigido
+UPDATE clientes SET endereco = 'Rua Atualizada, 999' WHERE id_c = 1;
+
+-- Exemplo DELETE exigido
+INSERT INTO clientes (nome, email, cpf, endereco) VALUES ('Teste Excluir', 'excluir@email.com', '00000000000', 'Rua X');
+DELETE FROM clientes WHERE cpf = '00000000000';
+
+
 
 
 -- Consultas com inner join
@@ -518,6 +578,17 @@ ORDER BY m.nome;
 -- =========================================================
 -- TRIGGERS
 -- =========================================================
+
+DELIMITER //
+
+--Impedir carros anteriores a 1980
+CREATE TRIGGER validar_ano_veiculo BEFORE INSERT ON veiculos FOR EACH ROW
+BEGIN
+    IF NEW.ano < 1980 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A oficina não atende veículos fabricados antes de 1980.';
+    END IF;
+END//
+DELIMITER ;
 
 DELIMITER //
 
