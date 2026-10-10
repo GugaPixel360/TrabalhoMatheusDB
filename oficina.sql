@@ -300,6 +300,20 @@ GROUP BY
 ORDER BY total_ordens DESC, m.nome;
 
 
+
+-- maior mecanico:
+SELECT m.nome AS mecanico, 
+       COUNT(DISTINCT os.id_os) AS quantidade_ordens, 
+       COUNT(sr.id_sr) AS quantidade_servicos, 
+       SUM(sr.valor) AS valor_total
+FROM mecanicos m
+INNER JOIN ordens_servico os ON m.id_m = os.fk_id_mecanico
+INNER JOIN servicos_realizados sr ON os.id_os = sr.fk_id_ordem_servico
+GROUP BY m.id_m, m.nome
+ORDER BY valor_total DESC
+LIMIT 1;
+
+
 -- =========================================================
 -- PROCEDURES
 -- =========================================================
