@@ -284,7 +284,9 @@ INSERT INTO servicos_realizados(fk_id_ordem_servico, descricao, fk_id_servico, v
 -- [CREATE / INSERT] Exemplos adicionais
 INSERT INTO clientes(nome, email, cpf, endereco) VALUES ('Kleber Teste', 'kleber@email.com', '00000000001', 'Av Central');
 INSERT INTO servicos(descricao, valor, fk_id_especialidade) VALUES ('Geometria 3D', 140.00, 4);
- 
+
+SET SQL_SAFE_UPDATES = 0;
+
 -- [READ / SELECT] Exemplos adicionais
 SELECT nome, email FROM clientes WHERE endereco LIKE '%Rua%';
 SELECT descricao, valor FROM servicos ORDER BY valor ASC;
@@ -296,7 +298,8 @@ UPDATE servicos SET valor = 160.00 WHERE descricao = 'Troca de Óleo'; -- Aciona
 -- [DELETE] Exemplos adicionais
 DELETE FROM servicos WHERE descricao = 'Geometria 3D';
 DELETE FROM clientes WHERE nome = 'Kleber Teste';
- 
+
+SET SQL_SAFE_UPDATES = 1;
 -- ==========================================================
 -- SEÇÃO 6: CONSULTAS, FILTROS, AGREGAÇÃO, JOINS E SUBQUERIES
 -- ==========================================================
@@ -398,7 +401,7 @@ INSERT INTO veiculos(fk_id_cliente, marca, modelo, ano, placa) VALUES (999, 'Fia
  
 -- Teste 3  : Preço de serviço inválido/negativo (Protegido por CHECK constraint)
 INSERT INTO servicos(descricao, valor, fk_id_especialidade) VALUES ('Serviço Errado', -50.00, 1);
- 
+
 -- Teste 4: Exclusão de cliente com veículo associado sem Cascade (Protegido por FK restritiva ou tratado por Cascade)
 DELETE FROM clientes WHERE id_c = 1;
 */
