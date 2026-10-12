@@ -1,8 +1,6 @@
-
 CREATE DATABASE IF NOT EXISTS oficina_mecanica;
 USE oficina_mecanica;
  
-
  
 CREATE TABLE IF NOT EXISTS clientes (
   id_c INT AUTO_INCREMENT PRIMARY KEY,
@@ -78,7 +76,7 @@ CREATE TABLE IF NOT EXISTS historico_precos (
 
 -- ============
 -- PROCEDURES =
- -- ===========
+-- ===========
 DELIMITER $$
  
 DROP PROCEDURE IF EXISTS cadastrar_cliente$$
@@ -300,6 +298,7 @@ DELETE FROM servicos WHERE descricao = 'Geometria 3D';
 DELETE FROM clientes WHERE nome = 'Kleber Teste';
 
 SET SQL_SAFE_UPDATES = 1;
+
 -- ==========================================================
 -- SEÇÃO 6: CONSULTAS, FILTROS, AGREGAÇÃO, JOINS E SUBQUERIES
 -- ==========================================================
